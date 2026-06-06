@@ -1,0 +1,12 @@
+# hAppS
+canteen:
+  canteen_url : "https://www.stwh-portal.de/mensa/webapp"
+  canteen_id : <your_canteen_id>
+  price_id : 1 for students, 2 for employees, 3 for guests
+  pay_id : 1 for card, 2 for cash
+# Mattermost
+mattermost_server:
+  webhook_url: <webhook_url_for_sending_messages>
+  username: <username_for_sending_messages>
+  icon_emoji: <emoji_for_sending_messages>
+  channel: <channel_for_sending_messages>
