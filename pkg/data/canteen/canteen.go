@@ -12,7 +12,6 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly"
 	"lab.it.hs-hannover.de/8mg-y3w-u2/happahappa/pkg/config"
-	"lab.it.hs-hannover.de/8mg-y3w-u2/happahappa/pkg/data/weather"
 )
 
 // CATEGORIES_TO_SCRAPE are categories with the main meals
@@ -27,11 +26,6 @@ var CATEGORIES_TO_SCRAPE = []string{
 	"SÜSSE ECKE",
 }
 
-type Message struct {
-	menu    *TodaysMenu
-	weather *weather.WeatherResponse
-}
-
 type TodaysMenu struct {
 	Categories []Category
 }
@@ -40,11 +34,11 @@ type TodaysMenu struct {
 func (t TodaysMenu) Body() string {
 	currentDate := time.Now().Local().Format("02.01.2006")
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("Mensa-Menu (%s)  \n", currentDate))
+	fmt.Fprintf(&sb, "Mensa-Menu (%s)  \n", currentDate)
 	for _, category := range t.Categories {
-		sb.WriteString(fmt.Sprintf("  %s\n", category.Name))
+		fmt.Fprintf(&sb, "  %s\n", category.Name)
 		for _, meal := range category.Meals {
-			sb.WriteString(fmt.Sprintf("    %s\n", meal))
+			fmt.Fprintf(&sb, "    %s\n", meal)
 		}
 	}
 	return sb.String()
@@ -54,16 +48,16 @@ func (t TodaysMenu) Body() string {
 func (t TodaysMenu) HTML() string {
 	currentDate := time.Now().Local().Format("02.01.2006")
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("<h1>Mensa-Menu (%s)</h1>", currentDate))
+	fmt.Fprintf(&sb, "<h1>Mensa-Menu (%s)</h1>", currentDate)
 	for _, category := range t.Categories {
-		sb.WriteString(fmt.Sprintf("<h4><b>%s</b></h4>", category.Name))
-		sb.WriteString(fmt.Sprintf("<ul>"))
+		fmt.Fprintf(&sb, "<h4><b>%s</b></h4>", category.Name)
+		fmt.Fprintf(&sb, "<ul>")
 		for _, meal := range category.Meals {
-			sb.WriteString(fmt.Sprintf("<li>%s</li>", meal.HTML()))
+			fmt.Fprintf(&sb, "<li>%s</li>", meal.HTML())
 		}
-		sb.WriteString(fmt.Sprintf("</ul>"))
+		fmt.Fprintf(&sb, "</ul>")
 	}
-	sb.WriteString(fmt.Sprintf("<br ><br >"))
+	fmt.Fprintf(&sb, "<br ><br >")
 	return sb.String()
 }
 
@@ -139,12 +133,12 @@ type CanteenScraper struct {
 }
 
 func NewCanteenScraper(config *config.Config) (*CanteenScraper, error) {
-	requestUrl, err := buildCanteenURL(config)
+	requestURL, err := buildCanteenURL(config)
 	if err != nil {
 		return nil, err
 	}
 	return &CanteenScraper{
-		URL: requestUrl,
+		URL: requestURL,
 	}, nil
 }
 
@@ -167,7 +161,8 @@ func buildCanteenURL(config *config.Config) (*url.URL, error) {
 func (c CanteenScraper) Scrape() *TodaysMenu {
 	categories := make([]Category, 0)
 	scraper := colly.NewCollector(
-		colly.AllowedDomains("www.stwh-portal.de"))
+		colly.AllowedDomains("www.stwh-portal.de"),
+	)
 	scraper.OnHTML("h3 > span.category", func(e *colly.HTMLElement) {
 		if !slices.Contains(CATEGORIES_TO_SCRAPE, e.Text) {
 			return
@@ -219,7 +214,6 @@ func (c CanteenScraper) Scrape() *TodaysMenu {
 				Price: price,
 				Info:  mealInfo,
 			})
-
 		})
 
 		categories = append(categories, category)
@@ -235,9 +229,9 @@ func (c CanteenScraper) Scrape() *TodaysMenu {
 	})
 	err := scraper.Visit(c.URL.String())
 	if err != nil {
-
+		slog.Error("error on page visit", "err", err.Error())
 	}
-	//Visit is async by default, waiting for it to finish
+	// Visit is async by default, waiting for it to finish
 	scraper.Wait()
 	return &TodaysMenu{
 		Categories: categories,
