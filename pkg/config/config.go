@@ -12,6 +12,7 @@ type Config struct {
 	Weather    *Weather          `yaml:"weather"`
 	Mattermost *MattermostConfig `yaml:"mattermost_server,omitempty"`
 	Matrix     *MatrixConfig     `yaml:"matrix_server,omitempty"`
+	Departure  *DepartureConfig  `yaml:"departure"`
 }
 
 func (c Config) String() string {
@@ -19,14 +20,19 @@ func (c Config) String() string {
 }
 
 type Canteen struct {
-	CanteenUrl string `yaml:"canteen_url"`
-	PriceId    int    `yaml:"price_id"`
-	PayId      int    `yaml:"pay_id"`
-	CanteenId  int    `yaml:"canteen_id"`
+	CanteenURL string `yaml:"canteen_url"`
+	PriceID    int    `yaml:"price_id"`
+	PayID      int    `yaml:"pay_id"`
+	CanteenID  int    `yaml:"canteen_id"`
 }
 
 func (c Canteen) String() string {
-	return fmt.Sprintf("Canteen URL: %s\nPrice ID: %d\nPay ID: %d\nCanteen ID: %d", c.CanteenUrl, c.PriceId, c.PayId, c.CanteenId)
+	return fmt.Sprintf("Canteen URL: %s\nPrice ID: %d\nPay ID: %d\nCanteen ID: %d", c.CanteenURL, c.PriceID, c.PayID, c.CanteenID)
+}
+
+type DepartureConfig struct {
+	URL       string `yaml:"departure_url"`
+	StationID int    `yaml:"station_id"`
 }
 
 type Weather struct {
@@ -39,18 +45,18 @@ func (w Weather) String() string {
 }
 
 type MattermostConfig struct {
-	WebhookUrl string `yaml:"webhook_url"`
+	WebhookURL string `yaml:"webhook_url"`
 	Username   string `yaml:"username,omitempty"`
 	IconEmoji  string `yaml:"icon_emoji,omitempty"`
 	Channel    string `yaml:"channel,omitempty"`
 }
 
 func (m MattermostConfig) String() string {
-	return fmt.Sprintf("Webhook URL: %s\nUsername: %s\nIcon Emoji: %s\nChannel: %s", m.WebhookUrl, m.Username, m.IconEmoji, m.Channel)
+	return fmt.Sprintf("Webhook URL: %s\nUsername: %s\nIcon Emoji: %s\nChannel: %s", m.WebhookURL, m.Username, m.IconEmoji, m.Channel)
 }
 
 type MatrixConfig struct {
-	BaseUrl     string `yaml:"base_url"`
+	BaseURL     string `yaml:"base_url"`
 	UserID      string `yaml:"user_id"`
 	AccessToken string `yaml:"access_token"`
 	RoomID      string `yaml:"room_id"`
