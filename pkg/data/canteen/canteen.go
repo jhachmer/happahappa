@@ -11,7 +11,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly"
-	"lab.it.hs-hannover.de/8mg-y3w-u2/happahappa/pkg/config"
+	"github.com/jhachmer/happahappa/pkg/config"
 )
 
 // CATEGORIES_TO_SCRAPE are categories with the main meals

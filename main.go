@@ -7,10 +7,10 @@ import (
 	"log/slog"
 	"os"
 
-	"lab.it.hs-hannover.de/8mg-y3w-u2/happahappa/pkg/client/matrix"
-	"lab.it.hs-hannover.de/8mg-y3w-u2/happahappa/pkg/config"
-	"lab.it.hs-hannover.de/8mg-y3w-u2/happahappa/pkg/data/canteen"
-	"lab.it.hs-hannover.de/8mg-y3w-u2/happahappa/pkg/data/weather"
+	"github.com/jhachmer/happahappa/pkg/client/matrix"
+	"github.com/jhachmer/happahappa/pkg/config"
+	"github.com/jhachmer/happahappa/pkg/data/canteen"
+	"github.com/jhachmer/happahappa/pkg/data/weather"
 )
 
 func main() {

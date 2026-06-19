@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/jhachmer/happahappa/pkg/config"
 	"golang.org/x/crypto/ssh/terminal"
-	"lab.it.hs-hannover.de/8mg-y3w-u2/happahappa/pkg/config"
 )
 
 type MatrixLoginRequest struct {

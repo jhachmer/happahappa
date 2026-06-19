@@ -1,4 +1,4 @@
-module lab.it.hs-hannover.de/8mg-y3w-u2/happahappa
+module github.com/jhachmer/happahappa
 
 go 1.26
 

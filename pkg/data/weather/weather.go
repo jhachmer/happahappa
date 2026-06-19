@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"lab.it.hs-hannover.de/8mg-y3w-u2/happahappa/pkg/util"
+	"github.com/jhachmer/happahappa/pkg/util"
 )
 
 const BaseURL = "https://api.met.no/weatherapi/locationforecast/2.0/complete"

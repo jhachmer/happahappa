@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"lab.it.hs-hannover.de/8mg-y3w-u2/happahappa/pkg/config"
+	"github.com/jhachmer/happahappa/pkg/config"
 )
 
 type Message interface {
