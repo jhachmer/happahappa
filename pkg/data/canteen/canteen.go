@@ -143,15 +143,15 @@ func NewCanteenScraper(config *config.Config) (*CanteenScraper, error) {
 }
 
 func buildCanteenURL(config *config.Config) (*url.URL, error) {
-	u, err := url.Parse(config.Canteen.CanteenUrl)
+	u, err := url.Parse(config.Canteen.CanteenURL)
 	if err != nil {
 		return nil, err
 	}
 
 	params := url.Values{}
-	params.Add("price", strconv.Itoa(config.Canteen.PriceId))
-	params.Add("pay", strconv.Itoa(config.Canteen.PayId))
-	params.Add("mensa", strconv.Itoa(config.Canteen.CanteenId))
+	params.Add("price", strconv.Itoa(config.Canteen.PriceID))
+	params.Add("pay", strconv.Itoa(config.Canteen.PayID))
+	params.Add("mensa", strconv.Itoa(config.Canteen.CanteenID))
 
 	u.RawQuery = params.Encode()
 

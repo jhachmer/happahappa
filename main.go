@@ -28,7 +28,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	var RoomID = cfg.Matrix.RoomID
+	RoomID := cfg.Matrix.RoomID
 
 	if generateAccessToken {
 		token, err := TokenGen(cfg)
@@ -60,7 +60,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		matrixClient := matrix.NewMatrixClient(cfg.Matrix.BaseUrl, credentials)
+		matrixClient := matrix.NewMatrixClient(cfg.Matrix.BaseURL, credentials)
 
 		canteenMessage := matrix.NewMatrixMessageFromSender(todaysMenu, RoomID)
 		weatherMessage := matrix.NewMatrixMessageFromSender(curWeather, RoomID)

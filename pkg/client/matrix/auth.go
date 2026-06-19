@@ -48,7 +48,7 @@ func NewMatrixLogin(cfg *config.Config) *MatrixLoginRequest {
 		Password: password,
 		Type:     "m.login.password",
 
-		BaseURL: cfg.Matrix.BaseUrl,
+		BaseURL: cfg.Matrix.BaseURL,
 	}
 }
 
