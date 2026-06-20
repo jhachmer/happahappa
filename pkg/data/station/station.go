@@ -1,6 +1,8 @@
 package station
 
 import (
+	"encoding/json"
+	"net/http"
 	"net/url"
 	"strconv"
 	"time"
@@ -28,6 +30,35 @@ type Departure struct {
 	Destination string
 	Events      []Event
 	Infos       []Info
+}
+
+func NewDeparture(departure DeparturesResponse) Departure {
+	lineEvents := make([]Event, 0)
+	for _, event := range departure.Events {
+		lineEvents = append(lineEvents, Event{
+			PlannedTime:   event.PlannedTime,
+			EstimatedTime: event.EstimatedTime,
+		})
+	}
+	lineInfos := make([]Info, 0)
+	for _, info := range departure.Infos {
+		lineInfos = append(lineInfos, Info{
+			Type:          info.Type,
+			Priority:      info.Priority,
+			IncidentStart: info.IncidentStart,
+			IncidentEnd:   info.IncidentEnd,
+			Title:         info.Title,
+			Content:       info.Content,
+		})
+	}
+
+	return Departure{
+		Line:        departure.Line,
+		LineNumber:  departure.Number,
+		Destination: departure.Destination,
+		Events:      lineEvents,
+		Infos:       lineInfos,
+	}
 }
 
 type DepartureBoard struct {
@@ -66,6 +97,72 @@ func buildDepartureURL(cfg *config.Config) (*url.URL, error) {
 	return u, nil
 }
 
+func (s *StationScraper) GetResponse() (*DepatureResponse, error) {
+	req, err := http.NewRequest("GET", s.url.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	decoded := DepatureResponse{}
+	err = json.NewDecoder(resp.Body).Decode(&decoded)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	return &decoded, nil
+}
+
 func (s *StationScraper) BuildDepartureBoard() *DepartureBoard {
-	return &DepartureBoard{}
+	apiResponse, err := s.GetResponse()
+	if err != nil {
+		return &DepartureBoard{}
+	}
+	departures := make([]Departure, 0)
+	for _, departureResponse := range apiResponse.Departures {
+		departures = append(departures, NewDeparture(departureResponse))
+	}
+
+	return &DepartureBoard{
+		StationName: apiResponse.Stop,
+		Departures:  departures,
+	}
+}
+
+type DepatureResponse struct {
+	Stop        string               `json:"stop"`
+	Coordinates []int                `json:"coordinates"`
+	Departures  []DeparturesResponse `json:"departures"`
+}
+
+type DeparturesResponse struct {
+	Line        string `json:"line"`
+	LineID      string `json:"lineId"`
+	Bon         string `json:"bon"`
+	Destination string `json:"destination"`
+	Number      string `json:"number"`
+	Events      []struct {
+		PlannedTime   time.Time `json:"plannedTime"`
+		EstimatedTime time.Time `json:"estimated_time"`
+	} `json:"events"`
+	Info  struct{} `json:"info"`
+	Infos []struct {
+		ID            string    `json:"id"`
+		Priority      string    `json:"priority"`
+		Type          string    `json:"type"`
+		IncidentStart time.Time `json:"incidentStart"`
+		IncidentEnd   time.Time `json:"incidentEnd"`
+		Title         string    `json:"titel"`
+		Content       string    `json:"content"`
+	} `json:"infos"`
+	Hints []struct {
+		Content      string `json:"content"`
+		ProviderCode string `json:"providerCode"`
+		Type         string `json:"type"`
+		Properties   struct {
+			Subnet string `json:"subnet"`
+		} `json:"properties"`
+	} `json:"hints"`
 }
