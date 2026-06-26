@@ -2,9 +2,11 @@ package station
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jhachmer/happahappa/pkg/config"
@@ -24,12 +26,44 @@ type Event struct {
 	EstimatedTime time.Time
 }
 
+func (e Event) String() string {
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "%s %s | ", e.PlannedTime.Format("15:04"), e.TimeDifference())
+
+	return sb.String()
+}
+
+func (e Event) TimeDifference() string {
+	diff := e.EstimatedTime.Sub(e.PlannedTime).Minutes()
+	positive := diff >= 0.0
+	sign := ""
+	if positive {
+		sign = "+"
+	}
+	return fmt.Sprintf("%s%.0f", sign, diff)
+}
+
 type Departure struct {
 	Line        string
 	LineNumber  string
 	Destination string
 	Events      []Event
 	Infos       []Info
+}
+
+func (d Departure) Body() string {
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "(%s) %s\n", d.LineNumber, d.Destination)
+	for _, event := range d.Events {
+		fmt.Fprintf(&sb, "%s", event)
+	}
+	return sb.String()
+}
+
+func (d Departure) HTML() string {
+	var sb strings.Builder
+
+	return sb.String()
 }
 
 func NewDeparture(departure DeparturesResponse) Departure {
@@ -64,6 +98,15 @@ func NewDeparture(departure DeparturesResponse) Departure {
 type DepartureBoard struct {
 	StationName string
 	Departures  []Departure
+}
+
+func (db DepartureBoard) Body() string {
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "%s\n", db.StationName)
+	for _, departure := range db.Departures {
+		fmt.Fprintf(&sb, "%s\n", departure.Body())
+	}
+	return sb.String()
 }
 
 type StationScraper struct {
