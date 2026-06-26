@@ -8,11 +8,11 @@ import (
 )
 
 type Config struct {
-	Canteen    *Canteen          `yaml:"canteen"`
-	Weather    *Weather          `yaml:"weather"`
+	Canteen    *Canteen          `yaml:"canteen,omitempty"`
+	Weather    *Weather          `yaml:"weather,omitempty"`
 	Mattermost *MattermostConfig `yaml:"mattermost_server,omitempty"`
 	Matrix     *MatrixConfig     `yaml:"matrix_server,omitempty"`
-	Departure  *DepartureConfig  `yaml:"departure"`
+	Departure  *DepartureConfig  `yaml:"departure,omitempty"`
 }
 
 func (c Config) String() string {
