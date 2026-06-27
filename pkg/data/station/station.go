@@ -33,6 +33,20 @@ func (e Event) String() string {
 	return sb.String()
 }
 
+func (e Event) Body() string {
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "%s %s | ", e.PlannedTime.Format("15:04"), e.TimeDifference())
+
+	return sb.String()
+}
+
+func (e Event) HTML() string {
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "%s %s | ", e.PlannedTime.Format("15:04"), e.TimeDifference())
+
+	return sb.String()
+}
+
 func (e Event) TimeDifference() string {
 	diff := e.EstimatedTime.Sub(e.PlannedTime).Minutes()
 	positive := diff >= 0.0
@@ -62,7 +76,10 @@ func (d Departure) Body() string {
 
 func (d Departure) HTML() string {
 	var sb strings.Builder
-
+	fmt.Fprintf(&sb, "(%s) %s\n", d.LineNumber, d.Destination)
+	for _, event := range d.Events {
+		fmt.Fprintf(&sb, "%s", event)
+	}
 	return sb.String()
 }
 
@@ -140,7 +157,7 @@ func buildDepartureURL(cfg *config.Config) (*url.URL, error) {
 	return u, nil
 }
 
-func (s *StationScraper) GetResponse() (*DepatureResponse, error) {
+func (s *StationScraper) getResponse() (*DepatureResponse, error) {
 	req, err := http.NewRequest("GET", s.url.String(), nil)
 	if err != nil {
 		return nil, err
@@ -159,7 +176,7 @@ func (s *StationScraper) GetResponse() (*DepatureResponse, error) {
 }
 
 func (s *StationScraper) BuildDepartureBoard() *DepartureBoard {
-	apiResponse, err := s.GetResponse()
+	apiResponse, err := s.getResponse()
 	if err != nil {
 		return &DepartureBoard{}
 	}
