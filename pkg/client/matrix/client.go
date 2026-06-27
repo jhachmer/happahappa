@@ -3,13 +3,20 @@ package matrix
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/jhachmer/happahappa/pkg/config"
+	"github.com/jhachmer/happahappa/pkg/data/station"
 )
+
+const MessageEventType = "m.room.message"
 
 var MessageBatch = make([]*MatrixMessage, 0)
 
@@ -111,4 +118,98 @@ func (mc Client) Register(message *MatrixMessage) {
 
 func (mc Client) SendRegistered() {
 	mc.SendMessageBatch(MessageBatch)
+}
+
+type SyncResponse struct {
+	NextBatch string `json:"next_batch"`
+	Rooms     struct {
+		Join map[string]JoinedRoom `json:"join"`
+	} `json:"rooms"`
+}
+
+type JoinedRoom struct {
+	Timeline struct {
+		Events []Event `json:"events"`
+	} `json:"timeline"`
+}
+
+type Event struct {
+	Type    string `json:"type"`
+	Sender  string `json:"sender"`
+	EventID string `json:"event_id"`
+	Content struct {
+		MsgType string `json:"msgtype"`
+		Body    string `json:"body"`
+	} `json:"content"`
+}
+
+func (mc Client) Sync(since string) (*SyncResponse, error) {
+	URL := mc.BaseURL + "_matrix/client/v3/sync"
+	if since != "" {
+		URL += "?since=" + url.QueryEscape(since) + "&timeout=30000"
+	} else {
+		URL += "?timeout=30000"
+	}
+
+	resp, err := mc.MakeRequest("GET", URL, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var syncResponse SyncResponse
+	err = json.NewDecoder(resp.Body).Decode(&syncResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &syncResponse, nil
+}
+
+type CommandHandler struct {
+	client         Client
+	roomID         string
+	stationScraper *station.StationScraper
+}
+
+func NewCommandHandler(cfg *config.Config, client Client) (*CommandHandler, error) {
+	if cfg.Matrix.RoomID == "" {
+		return nil, errors.New("no room id was given")
+	}
+	stationScraper, err := station.NewStationScraper(cfg)
+	if err != nil {
+		return nil, errors.New("could not construct station scraper")
+	}
+	return &CommandHandler{
+		client:         client,
+		roomID:         cfg.Matrix.RoomID,
+		stationScraper: stationScraper,
+	}, nil
+}
+
+func (c CommandHandler) HandleCommands() {
+	since := ""
+
+	for {
+		syncResp, err := c.client.Sync(since)
+		if err != nil {
+			slog.Error("could not sync chat state", "since", since, "err", err)
+			time.Sleep(10 * time.Second)
+			continue
+		}
+		since = syncResp.NextBatch
+
+		fmt.Println(syncResp)
+		for roomID, room := range syncResp.Rooms.Join {
+			for _, event := range room.Timeline.Events {
+				if event.Type != MessageEventType {
+					continue
+				}
+				fmt.Println(event.Content.Body)
+				switch event.Content.Body {
+				case "!abfahrt":
+					fmt.Println("in", roomID)
+				}
+			}
+		}
+	}
 }
