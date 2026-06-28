@@ -9,12 +9,11 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/google/uuid"
-	"github.com/jhachmer/happahappa/pkg/config"
-	"github.com/jhachmer/happahappa/pkg/data/station"
 )
+
+// TODO: add leading slash to API Routes
 
 const MessageEventType = "m.room.message"
 
@@ -40,7 +39,7 @@ func (mc Client) SendMessage(mm *MatrixMessage) error {
 		return err
 	}
 
-	URL := mc.BaseURL + fmt.Sprintf("/_matrix/client/v3/rooms/%s/send/%s/%s", mm.RoomID, eventType, generateUUID())
+	URL := mc.BaseURL + fmt.Sprintf("_matrix/client/v3/rooms/%s/send/%s/%s", mm.RoomID, eventType, generateUUID())
 	reqBody := bytes.NewReader(payload)
 	resp, err := mc.MakeRequest("PUT", URL, reqBody)
 	if err != nil {
@@ -70,9 +69,13 @@ func generateUUID() string {
 
 func (mc Client) JoinRoom(roomID string) error {
 	URL := mc.BaseURL + fmt.Sprintf("_matrix/client/v3/rooms/%s/join", roomID)
-	_, err := mc.MakeRequest("POST", URL, nil)
+	resp, err := mc.MakeRequest("POST", URL, nil)
 	if err != nil {
 		return err
+	}
+	if resp.StatusCode != 200 {
+		slog.Error("join room error", "status", resp.Status)
+		return errors.New("join room error")
 	}
 	slog.Info("Added user to room", "roomID", roomID)
 	return nil
@@ -94,6 +97,7 @@ func (mc Client) InviteToRoom(roomID, userID string) error {
 	if err != nil {
 		return err
 	}
+
 	slog.Info("Invited user to room", "roomID", roomID, "user_id", userID)
 	return nil
 }
@@ -143,6 +147,7 @@ type Event struct {
 	} `json:"content"`
 }
 
+// TODO: Ignore initial messages on first sync
 func (mc Client) Sync(since string) (*SyncResponse, error) {
 	URL := mc.BaseURL + "_matrix/client/v3/sync"
 	if since != "" {
@@ -163,53 +168,4 @@ func (mc Client) Sync(since string) (*SyncResponse, error) {
 		return nil, err
 	}
 	return &syncResponse, nil
-}
-
-type CommandHandler struct {
-	client         Client
-	roomID         string
-	stationScraper *station.StationScraper
-}
-
-func NewCommandHandler(cfg *config.Config, client Client) (*CommandHandler, error) {
-	if cfg.Matrix.RoomID == "" {
-		return nil, errors.New("no room id was given")
-	}
-	stationScraper, err := station.NewStationScraper(cfg)
-	if err != nil {
-		return nil, errors.New("could not construct station scraper")
-	}
-	return &CommandHandler{
-		client:         client,
-		roomID:         cfg.Matrix.RoomID,
-		stationScraper: stationScraper,
-	}, nil
-}
-
-func (c CommandHandler) HandleCommands() {
-	since := ""
-
-	for {
-		syncResp, err := c.client.Sync(since)
-		if err != nil {
-			slog.Error("could not sync chat state", "since", since, "err", err)
-			time.Sleep(10 * time.Second)
-			continue
-		}
-		since = syncResp.NextBatch
-
-		fmt.Println(syncResp)
-		for roomID, room := range syncResp.Rooms.Join {
-			for _, event := range room.Timeline.Events {
-				if event.Type != MessageEventType {
-					continue
-				}
-				fmt.Println(event.Content.Body)
-				switch event.Content.Body {
-				case "!abfahrt":
-					fmt.Println("in", roomID)
-				}
-			}
-		}
-	}
 }

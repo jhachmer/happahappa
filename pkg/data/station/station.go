@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jhachmer/happahappa/pkg/client/matrix"
 	"github.com/jhachmer/happahappa/pkg/config"
 )
 
@@ -126,6 +127,15 @@ func (db DepartureBoard) Body() string {
 	return sb.String()
 }
 
+func (db DepartureBoard) HTML() string {
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "%s\n", db.StationName)
+	for _, departure := range db.Departures {
+		fmt.Fprintf(&sb, "%s\n", departure.Body())
+	}
+	return sb.String()
+}
+
 type StationScraper struct {
 	url *url.URL
 }
@@ -225,4 +235,34 @@ type DeparturesResponse struct {
 			Subnet string `json:"subnet"`
 		} `json:"properties"`
 	} `json:"hints"`
+}
+
+type DepartureCommand struct {
+	scraper *StationScraper
+	client  *matrix.Client
+}
+
+func NewDepartureCommand(cfg *config.Config, client *matrix.Client) (*DepartureCommand, error) {
+	stationScraper, err := NewStationScraper(cfg)
+	if err != nil {
+		return nil, err
+	}
+	return &DepartureCommand{
+		scraper: stationScraper,
+		client:  client,
+	}, nil
+}
+
+func (dc *DepartureCommand) Name() string {
+	return "abfahrt"
+}
+
+func (dc *DepartureCommand) Execute(roomID string, args []string) error {
+	db := dc.scraper.BuildDepartureBoard()
+	message := matrix.NewMatrixMessageFromSender(db, roomID)
+	err := dc.client.SendMessage(message)
+	if err != nil {
+		return err
+	}
+	return nil
 }
