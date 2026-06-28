@@ -1,9 +1,23 @@
 BINARY_DIR := ./bin/
-BINARY_NAME := happahappa
-BINARY_X86_64 := $(BINARY_DIR)$(BINARY_NAME)
-BINARY_ARM_32 := $(BINARY_DIR)$(BINARY_NAME)-arm32
 
-.PHONY: default test build run clean dirs
+HAPPA_NAME := happahappa
+TOKEN_NAME := tokengen
+COMMAND_NAME := command
+JOIN_NAME := join
+
+HAPPA_X86_64 := $(BINARY_DIR)$(HAPPA_NAME)
+HAPPA_ARM_32 := $(BINARY_DIR)$(HAPPA_NAME)-arm32
+
+TOKEN_X86_64 := $(BINARY_DIR)$(TOKEN_NAME)
+TOKEN_ARM_32 := $(BINARY_DIR)$(TOKEN_NAME)-arm32
+
+COMMAND_X86_64 := $(BINARY_DIR)$(COMMAND_NAME)
+COMMAND_ARM_32 := $(BINARY_DIR)$(COMMAND_NAME)-arm32
+
+JOIN_X86_64 := $(BINARY_DIR)$(JOIN_NAME)
+JOIN_ARM_32 := $(BINARY_DIR)$(JOIN_NAME)-arm32
+
+.PHONY: default test build build-arm clean dirs
 
 default: test build build-arm
 
@@ -11,16 +25,34 @@ dirs:
 	mkdir -p $(BINARY_DIR)
 
 test:
-	go test ./... -v 4
+	go test ./... -v
 
-build: dirs
-	go build -o $(BINARY_X86_64) .
 
-build-arm: dirs
-	GOOS=linux GOARCH=arm go build -o $(BINARY_ARM_32) .
+build: build-happa build-tokengen build-command build-join
 
-run: build
-	$(BINARY)
+build-happa: dirs
+	go build -o $(HAPPA_X86_64) ./cmd/happahappa/sched
+
+build-tokengen: dirs
+	go build -o $(TOKEN_X86_64) ./cmd/happahappa/token
+
+build-command: dirs
+	go build -o $(COMMAND_X86_64) ./cmd/happahappa/command
+
+build-join: dirs
+	go build -o $(JOIN_X86_64) ./cmd/happahappa/join
+
+
+build-arm: build-happa-arm build-tokengen-arm build-command-arm
+
+build-happa-arm: dirs
+	GOOS=linux GOARCH=arm GOARM=7 go build -o $(HAPPA_ARM_32) ./cmd/happahappa/sched
+
+build-tokengen-arm: dirs
+	GOOS=linux GOARCH=arm GOARM=7 go build -o $(TOKEN_ARM_32) ./cmd/happahappa/token
+
+build-command-arm: dirs
+	GOOS=linux GOARCH=arm GOARM=7 go build -o $(COMMAND_ARM_32) ./cmd/happahappa/command
 
 clean:
 	rm -rf $(BINARY_DIR)
