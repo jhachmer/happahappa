@@ -48,16 +48,15 @@ func (t TodaysMenu) Body() string {
 func (t TodaysMenu) HTML() string {
 	currentDate := time.Now().Local().Format("02.01.2006")
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "<h1>Mensa-Menu (%s)</h1>", currentDate)
+	fmt.Fprintf(&sb, "<h3>Mensa-Menu (%s)</h3>", currentDate)
 	for _, category := range t.Categories {
-		fmt.Fprintf(&sb, "<h4><b>%s</b></h4>", category.Name)
+		fmt.Fprintf(&sb, "<p></p><h4><b>%s</b></h4>", category.Name)
 		fmt.Fprintf(&sb, "<ul>")
 		for _, meal := range category.Meals {
 			fmt.Fprintf(&sb, "<li>%s</li>", meal.HTML())
 		}
-		fmt.Fprintf(&sb, "</ul>")
+		fmt.Fprintf(&sb, "</ul><hr>")
 	}
-	fmt.Fprintf(&sb, "<br ><br >")
 	return sb.String()
 }
 
@@ -125,7 +124,7 @@ func (m Meal) String() string {
 }
 
 func (m Meal) HTML() string {
-	return fmt.Sprintf("%s <i>%s</i> <br >%s", m.Name, m.Price, m.Info)
+	return fmt.Sprintf("%s <i>%s</i><p>%s</p>", m.Name, m.Price, m.Info)
 }
 
 type CanteenScraper struct {
