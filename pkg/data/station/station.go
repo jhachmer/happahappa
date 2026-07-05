@@ -34,21 +34,21 @@ type Event struct {
 
 func (e Event) String() string {
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "%s %s | ", e.PlannedTime.Format("15:04"), e.TimeDifference())
+	fmt.Fprintf(&sb, "%s %s", e.PlannedTime.Format("15:04"), e.TimeDifference())
 
 	return sb.String()
 }
 
 func (e Event) Body() string {
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "%s %s | ", e.PlannedTime.Format("15:04"), e.TimeDifference())
+	fmt.Fprintf(&sb, "%s %s", e.PlannedTime.Format("15:04"), e.TimeDifference())
 
 	return sb.String()
 }
 
 func (e Event) HTML() string {
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "%s %s | ", e.PlannedTime.Format("15:04"), e.TimeDifference())
+	fmt.Fprintf(&sb, "%s %s", e.PlannedTime.Format("15:04"), e.TimeDifference())
 
 	return sb.String()
 }
@@ -75,7 +75,7 @@ func (d Departure) Body() string {
 	var sb strings.Builder
 	fmt.Fprintf(&sb, "(%s) %s\n", d.LineNumber, d.Destination)
 	for _, event := range d.Events {
-		fmt.Fprintf(&sb, "%s", event)
+		fmt.Fprintf(&sb, "%s | ", event)
 	}
 	return sb.String()
 }
@@ -84,7 +84,12 @@ func (d Departure) HTML() string {
 	var sb strings.Builder
 	fmt.Fprintf(&sb, "<b>(%s) %s</b><br>", d.LineNumber, d.Destination)
 	for _, event := range d.Events {
-		fmt.Fprintf(&sb, "%s", event)
+		fmt.Fprintf(&sb, "%s | ", event)
+	}
+	if len(d.Infos) > 0 {
+		for _, info := range d.Infos {
+			fmt.Fprintf(&sb, "<br> &#x26A0 %s (%s - %s)", info.Title, info.IncidentStart.Format("02 Jan 06 15:04"), info.IncidentEnd.Format("02 Jan 06 15:04"))
+		}
 	}
 	return sb.String()
 }
@@ -125,7 +130,7 @@ type DepartureBoard struct {
 
 func (db DepartureBoard) Body() string {
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "%s\n", db.StationName)
+	fmt.Fprintf(&sb, "%s (%s)\n", db.StationName, time.Now().Format("15:04"))
 	for _, departure := range db.Departures {
 		fmt.Fprintf(&sb, "%s\n", departure.Body())
 	}
@@ -134,7 +139,7 @@ func (db DepartureBoard) Body() string {
 
 func (db DepartureBoard) HTML() string {
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "<h1>%s</h1>", db.StationName)
+	fmt.Fprintf(&sb, "<h1>%s (%s)</h1>", db.StationName, time.Now().Format("02 Jan 15:04"))
 	for _, departure := range db.Departures {
 		fmt.Fprintf(&sb, "%s<br>", departure.HTML())
 	}
