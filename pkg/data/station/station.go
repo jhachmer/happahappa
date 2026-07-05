@@ -13,6 +13,11 @@ import (
 	"github.com/jhachmer/happahappa/pkg/config"
 )
 
+func Loc() *time.Location {
+	tz, _ := time.LoadLocation("Europe/Berlin")
+	return tz
+}
+
 type Info struct {
 	Type          string
 	Priority      string
@@ -29,21 +34,21 @@ type Event struct {
 
 func (e Event) String() string {
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "%s %s | ", e.PlannedTime.Format("15:04"), e.TimeDifference())
+	fmt.Fprintf(&sb, "%s %s | ", e.PlannedTime.In(Loc()).Format("15:04"), e.TimeDifference())
 
 	return sb.String()
 }
 
 func (e Event) Body() string {
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "%s %s | ", e.PlannedTime.Format("15:04"), e.TimeDifference())
+	fmt.Fprintf(&sb, "%s %s | ", e.PlannedTime.In(Loc()).Format("15:04"), e.TimeDifference())
 
 	return sb.String()
 }
 
 func (e Event) HTML() string {
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "%s %s | ", e.PlannedTime.Format("15:04"), e.TimeDifference())
+	fmt.Fprintf(&sb, "%s %s | ", e.PlannedTime.In(Loc()).Format("15:04"), e.TimeDifference())
 
 	return sb.String()
 }
@@ -77,7 +82,7 @@ func (d Departure) Body() string {
 
 func (d Departure) HTML() string {
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "(%s) %s\n", d.LineNumber, d.Destination)
+	fmt.Fprintf(&sb, "<b>(%s) %s</b><br>", d.LineNumber, d.Destination)
 	for _, event := range d.Events {
 		fmt.Fprintf(&sb, "%s", event)
 	}
@@ -129,9 +134,9 @@ func (db DepartureBoard) Body() string {
 
 func (db DepartureBoard) HTML() string {
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "%s\n", db.StationName)
+	fmt.Fprintf(&sb, "<h1>%s</h1>", db.StationName)
 	for _, departure := range db.Departures {
-		fmt.Fprintf(&sb, "%s\n", departure.Body())
+		fmt.Fprintf(&sb, "%s<br>", departure.HTML())
 	}
 	return sb.String()
 }
