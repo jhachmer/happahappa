@@ -34,21 +34,21 @@ type Event struct {
 
 func (e Event) String() string {
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "%s %s | ", e.PlannedTime.In(Loc()).Format("15:04"), e.TimeDifference())
+	fmt.Fprintf(&sb, "%s %s | ", e.PlannedTime.Format("15:04"), e.TimeDifference())
 
 	return sb.String()
 }
 
 func (e Event) Body() string {
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "%s %s | ", e.PlannedTime.In(Loc()).Format("15:04"), e.TimeDifference())
+	fmt.Fprintf(&sb, "%s %s | ", e.PlannedTime.Format("15:04"), e.TimeDifference())
 
 	return sb.String()
 }
 
 func (e Event) HTML() string {
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "%s %s | ", e.PlannedTime.In(Loc()).Format("15:04"), e.TimeDifference())
+	fmt.Fprintf(&sb, "%s %s | ", e.PlannedTime.Format("15:04"), e.TimeDifference())
 
 	return sb.String()
 }
@@ -93,8 +93,8 @@ func NewDeparture(departure DeparturesResponse) Departure {
 	lineEvents := make([]Event, 0)
 	for _, event := range departure.Events {
 		lineEvents = append(lineEvents, Event{
-			PlannedTime:   event.PlannedTime,
-			EstimatedTime: event.EstimatedTime,
+			PlannedTime:   event.PlannedTime.In(Loc()),
+			EstimatedTime: event.EstimatedTime.In(Loc()),
 		})
 	}
 	lineInfos := make([]Info, 0)
@@ -102,8 +102,8 @@ func NewDeparture(departure DeparturesResponse) Departure {
 		lineInfos = append(lineInfos, Info{
 			Type:          info.Type,
 			Priority:      info.Priority,
-			IncidentStart: info.IncidentStart,
-			IncidentEnd:   info.IncidentEnd,
+			IncidentStart: info.IncidentStart.In(Loc()),
+			IncidentEnd:   info.IncidentEnd.In(Loc()),
 			Title:         info.Title,
 			Content:       info.Content,
 		})
