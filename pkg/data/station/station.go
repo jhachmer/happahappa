@@ -177,7 +177,7 @@ func buildDepartureURL(cfg *config.Config) (*url.URL, error) {
 	return u, nil
 }
 
-func (s *StationScraper) getResponse() (*DepatureResponse, error) {
+func (s *StationScraper) getResponse() (*DepartureResponse, error) {
 	req, err := http.NewRequest("GET", s.url.String(), nil)
 	if err != nil {
 		return nil, err
@@ -186,7 +186,7 @@ func (s *StationScraper) getResponse() (*DepatureResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	decoded := DepatureResponse{}
+	decoded := DepartureResponse{}
 	err = json.NewDecoder(resp.Body).Decode(&decoded)
 	if err != nil {
 		return nil, err
@@ -211,7 +211,7 @@ func (s *StationScraper) BuildDepartureBoard() *DepartureBoard {
 	}
 }
 
-type DepatureResponse struct {
+type DepartureResponse struct {
 	Stop        string               `json:"stop"`
 	Coordinates []int                `json:"coordinates"`
 	Departures  []DeparturesResponse `json:"departures"`
