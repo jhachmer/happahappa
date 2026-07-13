@@ -6,7 +6,9 @@ canteen:
   pay_id : 1 for card, 2 for cash
 departure:
   departure_url : "https://abfahrten.uestra.de/proxy2/efa/XML_DM_REQUEST"
-  station_id : <id_of_station> # found on https://abfahrten.uestra.de
+  stations:
+    <station_name1>: "station_id1"
+    <station_name2>: "station_id2"
 matrix_server:
   base_url: <base_url_of_matrix_instance>
   user_id: <user_id_of_bot_user>

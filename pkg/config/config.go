@@ -30,8 +30,8 @@ func (c Canteen) String() string {
 }
 
 type DepartureConfig struct {
-	URL       string `yaml:"departure_url"`
-	StationID int    `yaml:"station_id"`
+	URL      string            `yaml:"departure_url"`
+	Stations map[string]string `yaml:"stations"`
 }
 
 type Weather struct {
