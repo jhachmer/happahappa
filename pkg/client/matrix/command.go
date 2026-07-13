@@ -37,8 +37,8 @@ func (c CommandHandler) Register(command Command) {
 }
 
 func (c CommandHandler) HandleCommands() {
+	slog.Info("Listening for commands...")
 	since := ""
-
 	for {
 		syncResp, err := c.client.Sync(since)
 		if err != nil {
@@ -57,13 +57,20 @@ func (c CommandHandler) HandleCommands() {
 				if !strings.HasPrefix(body, "!") {
 					continue
 				}
-				command := strings.TrimPrefix(body, "!")
+				// TODO: probably still wanna allow commands that do not need args
+				messageParts := strings.SplitN(body, " ", 2)
+				if len(messageParts) != 2 {
+					slog.Warn("not enough parts in body", "body", body)
+					continue
+				}
+				command := strings.TrimPrefix(messageParts[0], "!")
+				args := strings.Split(messageParts[1], ",")
 				handler, ok := c.commandMap[command]
 				if !ok {
 					continue
 				}
 
-				if err := handler(roomID, nil); err != nil {
+				if err := handler(roomID, args); err != nil {
 					slog.Error(
 						"command failed",
 						"command", command,

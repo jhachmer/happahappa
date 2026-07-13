@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
@@ -146,29 +145,27 @@ func (db DepartureBoard) HTML() string {
 	return sb.String()
 }
 
-type StationScraper struct {
-	url *url.URL
+type Scraper struct {
+	BaseURL    string
+	stationMap map[string]string
 }
 
-func NewStationScraper(cfg *config.Config) (*StationScraper, error) {
-	requestURL, err := buildDepartureURL(cfg)
-	if err != nil {
-		return nil, err
-	}
-	return &StationScraper{
-		url: requestURL,
+func NewStationScraper(cfg *config.Config) (*Scraper, error) {
+	return &Scraper{
+		BaseURL:    cfg.Departure.URL,
+		stationMap: cfg.Departure.Stations,
 	}, nil
 }
 
-func buildDepartureURL(cfg *config.Config) (*url.URL, error) {
-	u, err := url.Parse(cfg.Departure.URL)
+func (s *Scraper) buildDepartureURL(stationID string) (*url.URL, error) {
+	u, err := url.Parse(s.BaseURL)
 	if err != nil {
 		return nil, err
 	}
 
 	params := url.Values{}
 	params.Add("outputFormat", "rapidJSON")
-	params.Add("name_dm", strconv.Itoa(cfg.Departure.StationID))
+	params.Add("name_dm", stationID)
 	params.Add("type_dm", "any")
 	params.Add("mode", "direct")
 	params.Add("useRealtime", "1")
@@ -177,8 +174,12 @@ func buildDepartureURL(cfg *config.Config) (*url.URL, error) {
 	return u, nil
 }
 
-func (s *StationScraper) getResponse() (*DepartureResponse, error) {
-	req, err := http.NewRequest("GET", s.url.String(), nil)
+func (s *Scraper) getResponse(stationID string) (*DepartureResponse, error) {
+	requestURL, err := s.buildDepartureURL(stationID)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest("GET", requestURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -195,8 +196,8 @@ func (s *StationScraper) getResponse() (*DepartureResponse, error) {
 	return &decoded, nil
 }
 
-func (s *StationScraper) BuildDepartureBoard() *DepartureBoard {
-	apiResponse, err := s.getResponse()
+func (s *Scraper) BuildDepartureBoard(stationID string) *DepartureBoard {
+	apiResponse, err := s.getResponse(stationID)
 	if err != nil {
 		return &DepartureBoard{}
 	}
@@ -248,7 +249,7 @@ type DeparturesResponse struct {
 }
 
 type DepartureCommand struct {
-	scraper *StationScraper
+	scraper *Scraper
 	client  *matrix.Client
 }
 
@@ -268,7 +269,15 @@ func (dc *DepartureCommand) Name() string {
 }
 
 func (dc *DepartureCommand) Execute(roomID string, args []string) error {
-	db := dc.scraper.BuildDepartureBoard()
+	if len(args) < 1 || len(args) >= 2 {
+		return fmt.Errorf("invalid argument count: %d", len(args))
+	}
+	stationName := args[0]
+	id, ok := dc.scraper.stationMap[stationName]
+	if !ok {
+		return fmt.Errorf("unknown station: %s", stationName)
+	}
+	db := dc.scraper.BuildDepartureBoard(id)
 	message := matrix.NewMatrixMessageFromSender(db, roomID)
 	err := dc.client.SendMessage(message)
 	if err != nil {
