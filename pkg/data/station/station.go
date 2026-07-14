@@ -3,6 +3,7 @@ package station
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -283,5 +284,6 @@ func (dc *DepartureCommand) Execute(roomID string, args []string) error {
 	if err != nil {
 		return err
 	}
+	slog.Info("Message send", "message", message)
 	return nil
 }

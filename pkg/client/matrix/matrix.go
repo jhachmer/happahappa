@@ -20,6 +20,10 @@ type MatrixMessage struct {
 	RoomID string `json:"-"`
 }
 
+func (m *MatrixMessage) String() string {
+	return m.Body
+}
+
 func NewFormattedMatrixMessage(body, formattedBody, roomID string) *MatrixMessage {
 	return &MatrixMessage{
 		Body:          body,
