@@ -39,6 +39,12 @@ func (c CommandHandler) Register(command Command) {
 func (c CommandHandler) HandleCommands() {
 	slog.Info("Listening for commands...")
 	since := ""
+	// sync once to avoid sending messages for old events
+	syncResp, err := c.client.Sync(since)
+	if err != nil {
+		slog.Error("could not sync chat state", "since", since, "err", err)
+	}
+	since = syncResp.NextBatch
 	for {
 		syncResp, err := c.client.Sync(since)
 		if err != nil {
