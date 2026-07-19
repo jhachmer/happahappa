@@ -1,7 +1,6 @@
 package matrix
 
 import (
-	"errors"
 	"log/slog"
 	"strings"
 	"time"
@@ -17,15 +16,11 @@ type Command interface {
 type CommandFunc func(roomID string, args []string) error
 
 type CommandHandler struct {
-	client Client
-
+	client     Client
 	commandMap map[string]CommandFunc
 }
 
 func NewCommandHandler(cfg *config.Config, client Client) (*CommandHandler, error) {
-	if cfg.Matrix.RoomID == "" {
-		return nil, errors.New("no room id was given")
-	}
 	return &CommandHandler{
 		client:     client,
 		commandMap: make(map[string]CommandFunc),
@@ -65,12 +60,14 @@ func (c CommandHandler) HandleCommands() {
 				}
 				// TODO: probably still wanna allow commands that do not need args
 				messageParts := strings.SplitN(body, " ", 2)
-				if len(messageParts) != 2 {
+				var args []string
+				if len(messageParts) < 2 {
+					args = []string{}
 					slog.Warn("not enough parts in body", "body", body)
-					continue
+				} else {
+					args = strings.Split(messageParts[1], ",")
 				}
 				command := strings.TrimPrefix(messageParts[0], "!")
-				args := strings.Split(messageParts[1], ",")
 				handler, ok := c.commandMap[command]
 				if !ok {
 					continue
