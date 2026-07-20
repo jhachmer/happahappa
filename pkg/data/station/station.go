@@ -295,25 +295,22 @@ func (dc *DepartureCommand) Execute(roomID string, args []string) error {
 	}
 	stationName := args[0]
 	if stationName == "help" {
-		help := &DepartureHelp{helpText: dc.Help()}
-		message := matrix.NewMatrixMessageFromSender(help, roomID)
-		err := dc.client.SendMessage(message)
-		if err != nil {
-			return err
-		}
-		slog.Info("Message send", "message", message)
-		return nil
+		return dc.send(roomID, &DepartureHelp{helpText: dc.Help()})
 	}
 	id, ok := dc.scraper.stationMap[stationName]
 	if !ok {
 		return fmt.Errorf("unknown station: %s", stationName)
 	}
-	db := dc.scraper.BuildDepartureBoard(id)
-	message := matrix.NewMatrixMessageFromSender(db, roomID)
-	err := dc.client.SendMessage(message)
-	if err != nil {
+
+	return dc.send(roomID, dc.scraper.BuildDepartureBoard(id))
+}
+
+func (dc *DepartureCommand) send(roomID string, sender matrix.MatrixHTMLSender) error {
+	message := matrix.NewMatrixMessageFromSender(sender, roomID)
+	if err := dc.client.SendMessage(message); err != nil {
 		return err
 	}
-	slog.Info("Message send", "message", message)
+
+	slog.Info("Message sent", "message", message)
 	return nil
 }
