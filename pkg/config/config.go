@@ -23,6 +23,7 @@ type Canteen struct {
 	PriceID    int    `yaml:"price_id"`
 	PayID      int    `yaml:"pay_id"`
 	CanteenID  int    `yaml:"canteen_id"`
+	RoomID     string `yaml:"room_id"`
 }
 
 func (c Canteen) String() string {
@@ -32,6 +33,7 @@ func (c Canteen) String() string {
 type DepartureConfig struct {
 	URL      string            `yaml:"departure_url"`
 	Stations map[string]string `yaml:"stations"`
+	RoomID   string            `yaml:"room_id"`
 }
 
 type Weather struct {
@@ -47,7 +49,6 @@ type MatrixConfig struct {
 	BaseURL     string `yaml:"base_url"`
 	UserID      string `yaml:"user_id"`
 	AccessToken string `yaml:"access_token"`
-	RoomID      string `yaml:"room_id"`
 }
 
 func (m MatrixConfig) String() string {

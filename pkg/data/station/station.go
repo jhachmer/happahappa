@@ -265,6 +265,26 @@ func NewDepartureCommand(cfg *config.Config, client *matrix.Client) (*DepartureC
 	}, nil
 }
 
+type DepartureHelp struct {
+	helpText string
+}
+
+func (cmd *DepartureHelp) Body() string {
+	return cmd.helpText
+}
+
+func (cmd *DepartureHelp) HTML() string {
+	return cmd.helpText
+}
+
+func (dc *DepartureCommand) Help() string {
+	var sb strings.Builder
+	for abbr, station := range dc.scraper.stationMap {
+		fmt.Fprintf(&sb, "%s: %s\n", abbr, station)
+	}
+	return sb.String()
+}
+
 func (dc *DepartureCommand) Name() string {
 	return "abfahrt"
 }
@@ -274,16 +294,23 @@ func (dc *DepartureCommand) Execute(roomID string, args []string) error {
 		return fmt.Errorf("invalid argument count: %d", len(args))
 	}
 	stationName := args[0]
+	if stationName == "help" {
+		return dc.send(roomID, &DepartureHelp{helpText: dc.Help()})
+	}
 	id, ok := dc.scraper.stationMap[stationName]
 	if !ok {
 		return fmt.Errorf("unknown station: %s", stationName)
 	}
-	db := dc.scraper.BuildDepartureBoard(id)
-	message := matrix.NewMatrixMessageFromSender(db, roomID)
-	err := dc.client.SendMessage(message)
-	if err != nil {
+
+	return dc.send(roomID, dc.scraper.BuildDepartureBoard(id))
+}
+
+func (dc *DepartureCommand) send(roomID string, sender matrix.MatrixHTMLSender) error {
+	message := matrix.NewMatrixMessageFromSender(sender, roomID)
+	if err := dc.client.SendMessage(message); err != nil {
 		return err
 	}
-	slog.Info("Message send", "message", message)
+
+	slog.Info("Message sent", "message", message)
 	return nil
 }

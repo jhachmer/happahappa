@@ -25,7 +25,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	RoomID := cfg.Matrix.RoomID
+	RoomID := cfg.Canteen.RoomID
 
 	canteenScraper, err := canteen.NewCanteenScraper(cfg)
 	if err != nil {
