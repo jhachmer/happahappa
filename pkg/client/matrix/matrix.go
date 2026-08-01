@@ -1,17 +1,17 @@
 package matrix
 
-type MatrixPlainSender interface {
+type PlainSender interface {
 	Body() string
 }
 
-// MatrixHTMLSender is implemented by every type that is representable by plain text and formatted text (as HTML)
-type MatrixHTMLSender interface {
+// HTMLSender is implemented by every type that is representable by plain text and formatted text (as HTML)
+type HTMLSender interface {
 	Body() string
 	HTML() string
 }
 
-// MatrixMessage is the type holding information about what and where a message is to be sent
-type MatrixMessage struct {
+// Message is the type holding information about what and where a message is to be sent
+type Message struct {
 	Body          string `json:"body"`
 	Format        string `json:"format,omitempty"`
 	FormattedBody string `json:"formatted_body,omitempty"`
@@ -20,12 +20,12 @@ type MatrixMessage struct {
 	RoomID string `json:"-"`
 }
 
-func (m *MatrixMessage) String() string {
+func (m *Message) String() string {
 	return m.Body
 }
 
-func NewFormattedMatrixMessage(body, formattedBody, roomID string) *MatrixMessage {
-	return &MatrixMessage{
+func NewFormattedMatrixMessage(body, formattedBody, roomID string) *Message {
+	return &Message{
 		Body:          body,
 		FormattedBody: formattedBody,
 		Format:        "org.matrix.custom.html",
@@ -35,8 +35,8 @@ func NewFormattedMatrixMessage(body, formattedBody, roomID string) *MatrixMessag
 	}
 }
 
-func NewPlainMatrixMessage(body, roomID string) *MatrixMessage {
-	return &MatrixMessage{
+func NewPlainMatrixMessage(body, roomID string) *Message {
+	return &Message{
 		Body:    body,
 		Msgtype: "m.text",
 
@@ -44,8 +44,8 @@ func NewPlainMatrixMessage(body, roomID string) *MatrixMessage {
 	}
 }
 
-func NewMatrixMessageFromSender(sender MatrixHTMLSender, roomID string) *MatrixMessage {
-	return &MatrixMessage{
+func NewMatrixMessageFromSender(sender HTMLSender, roomID string) *Message {
+	return &Message{
 		Body:          sender.Body(),
 		FormattedBody: sender.HTML(),
 		Format:        "org.matrix.custom.html",
