@@ -17,7 +17,7 @@ import (
 
 const MessageEventType = "m.room.message"
 
-var MessageBatch = make([]*MatrixMessage, 0)
+var MessageBatch = make([]*Message, 0)
 
 type Client struct {
 	BaseURL     string
@@ -31,7 +31,7 @@ func NewMatrixClient(baseURL string, credentials *Credentials) Client {
 	}
 }
 
-func (mc Client) SendMessage(mm *MatrixMessage) error {
+func (mc Client) SendMessage(mm *Message) error {
 	const eventType = "m.room.message"
 
 	payload, err := json.Marshal(mm)
@@ -53,7 +53,7 @@ func (mc Client) SendMessage(mm *MatrixMessage) error {
 	return nil
 }
 
-func (mc Client) SendMessageBatch(messages []*MatrixMessage) {
+func (mc Client) SendMessageBatch(messages []*Message) {
 	for i, message := range messages {
 		err := mc.SendMessage(message)
 		if err != nil {
@@ -116,7 +116,7 @@ func (mc Client) MakeRequest(method, url string, body io.Reader) (*http.Response
 	return resp, nil
 }
 
-func (mc Client) Register(message *MatrixMessage) {
+func (mc Client) Register(message *Message) {
 	MessageBatch = append(MessageBatch, message)
 }
 
