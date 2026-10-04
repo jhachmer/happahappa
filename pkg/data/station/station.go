@@ -307,7 +307,7 @@ func (dc *DepartureCommand) Execute(roomID string, args []string) error {
 	return dc.send(roomID, dc.scraper.BuildDepartureBoard(id))
 }
 
-func (dc *DepartureCommand) send(roomID string, sender matrix.MatrixHTMLSender) error {
+func (dc *DepartureCommand) send(roomID string, sender matrix.HTMLSender) error {
 	message := matrix.NewMatrixMessageFromSender(sender, roomID)
 	if err := dc.client.SendMessage(message); err != nil {
 		return err
