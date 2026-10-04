@@ -48,13 +48,15 @@ func (e Event) Body() string {
 
 func (e Event) HTML() string {
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "%s %s", e.PlannedTime.Format("15:04"), e.TimeDifference())
-
+	fmt.Fprintf(&sb, "%s <font color=\"#ff0000\">%s</font>", e.PlannedTime.Format("15:04"), e.TimeDifference())
 	return sb.String()
 }
 
 func (e Event) TimeDifference() string {
 	diff := e.EstimatedTime.Sub(e.PlannedTime).Minutes()
+	if diff < 1.0 {
+		return ""
+	}
 	positive := diff >= 0.0
 	sign := ""
 	if positive {
@@ -75,7 +77,7 @@ func (d Departure) Body() string {
 	var sb strings.Builder
 	fmt.Fprintf(&sb, "(%s) %s\n", d.LineNumber, d.Destination)
 	for _, event := range d.Events {
-		fmt.Fprintf(&sb, "%s | ", event)
+		fmt.Fprintf(&sb, "%s | ", event.Body())
 	}
 	return sb.String()
 }
@@ -84,7 +86,7 @@ func (d Departure) HTML() string {
 	var sb strings.Builder
 	fmt.Fprintf(&sb, "<b>(%s) %s</b><br>", d.LineNumber, d.Destination)
 	for _, event := range d.Events {
-		fmt.Fprintf(&sb, "%s | ", event)
+		fmt.Fprintf(&sb, "%s | ", event.HTML())
 	}
 	if len(d.Infos) > 0 {
 		for _, info := range d.Infos {

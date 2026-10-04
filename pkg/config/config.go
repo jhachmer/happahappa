@@ -37,6 +37,7 @@ type DepartureConfig struct {
 }
 
 type Weather struct {
+	Location string `yaml:"location"`
 	Lat string `yaml:"lat"`
 	Lon string `yaml:"lon"`
 }
