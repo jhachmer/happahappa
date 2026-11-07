@@ -308,7 +308,7 @@ func (dc *DepartureCommand) Execute(roomID string, args []string) error {
 }
 
 func (dc *DepartureCommand) send(roomID string, sender matrix.HTMLSender) error {
-	message := matrix.NewMatrixMessageFromSender(sender, roomID)
+	message := matrix.NewFormattedMessage(sender, roomID)
 	if err := dc.client.SendMessage(message); err != nil {
 		return err
 	}

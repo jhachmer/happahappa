@@ -24,27 +24,16 @@ func (m *Message) String() string {
 	return m.Body
 }
 
-func NewFormattedMatrixMessage(body, formattedBody, roomID string) *Message {
+func NewPlainMessage(sender PlainSender, roomID string) *Message {
 	return &Message{
-		Body:          body,
-		FormattedBody: formattedBody,
-		Format:        "org.matrix.custom.html",
-		Msgtype:       "m.text",
-
-		RoomID: roomID,
-	}
-}
-
-func NewPlainMatrixMessage(body, roomID string) *Message {
-	return &Message{
-		Body:    body,
+		Body:    sender.Body(),
 		Msgtype: "m.text",
 
 		RoomID: roomID,
 	}
 }
 
-func NewMatrixMessageFromSender(sender HTMLSender, roomID string) *Message {
+func NewFormattedMessage(sender HTMLSender, roomID string) *Message {
 	return &Message{
 		Body:          sender.Body(),
 		FormattedBody: sender.HTML(),

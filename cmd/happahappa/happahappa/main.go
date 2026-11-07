@@ -49,8 +49,8 @@ func main() {
 
 		matrixClient := matrix.NewMatrixClient(cfg.Matrix.BaseURL, credentials)
 
-		canteenMessage := matrix.NewMatrixMessageFromSender(todaysMenu, RoomID)
-		weatherMessage := matrix.NewMatrixMessageFromSender(curWeather, RoomID)
+		canteenMessage := matrix.NewFormattedMessage(todaysMenu, RoomID)
+		weatherMessage := matrix.NewFormattedMessage(curWeather, RoomID)
 
 		matrixClient.Register(canteenMessage)
 		matrixClient.Register(weatherMessage)
