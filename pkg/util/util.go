@@ -4,15 +4,17 @@ import (
 	"log/slog"
 )
 
-const Sun string = " &#x1F31E "
-const Cloud string = " &#x2601 "
-const SunWithCloud string = " &#x26C5 "
-const Fog string = " &#x1F32B "
-const Rain string = " &#x1F327 "
-const Shower string = " &#x1F326 "
-const Thunder string = " &#x26C8 "
-const Snow string = " &#x1F328 "
-const QuestionMark string = " &#x2753 "
+const (
+	Sun          string = " &#x1F31E "
+	Cloud        string = " &#x2601 "
+	SunWithCloud string = " &#x26C5 "
+	Fog          string = " &#x1F32B "
+	Rain         string = " &#x1F327 "
+	Shower       string = " &#x1F326 "
+	Thunder      string = " &#x26C8 "
+	Snow         string = " &#x1F328 "
+	QuestionMark string = " &#x2753 "
+)
 
 func UnitToSymbol(unit string) string {
 	UnitMap := map[string]string{
