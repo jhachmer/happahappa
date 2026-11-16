@@ -70,6 +70,7 @@ func (c CommandHandler) HandleCommands() {
 				command := strings.TrimPrefix(messageParts[0], "!")
 				handler, ok := c.commandMap[command]
 				if !ok {
+					slog.Warn("command was not found", "cmd", command)
 					continue
 				}
 
