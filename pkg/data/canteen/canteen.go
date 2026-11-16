@@ -14,10 +14,10 @@ import (
 	"github.com/jhachmer/happahappa/pkg/config"
 )
 
-// CATEGORIES_TO_SCRAPE are categories with the main meals
+// CategoriesToScrape are categories with the main meals
 // excluding food and drinks that are offered regularly
 // please don't rename your categories stwh
-var CATEGORIES_TO_SCRAPE = []string{
+var CategoriesToScrape = []string{
 	"PASTA & FRIENDS",
 	"FLEISCH & MEER",
 	"VEGGIE & VEGAN",
@@ -85,37 +85,31 @@ type MealInfo struct {
 }
 
 func (mi MealInfo) String() string {
+	emojis := []struct {
+		enabled bool
+		emoji   string
+	}{
+		{mi.Vegan, "🥦"},
+		{mi.Vegetarian, "🥕"},
+		{mi.Beef, "🐄"},
+		{mi.Pork, "🐖"},
+		{mi.Chicken, "🐓"},
+		{mi.Fish, "🐟"},
+		{mi.Grain, "🌾"},
+		{mi.Garlic, "🧄"},
+		{mi.Alcohol, "🍺"},
+		{mi.Milk, "🥛"},
+	}
+
 	var sb strings.Builder
-	if mi.Vegan {
-		sb.WriteString(" &#x1F966 ")
+
+	for _, item := range emojis {
+		if item.enabled {
+			sb.WriteString(" ")
+			sb.WriteString(item.emoji)
+		}
 	}
-	if mi.Vegetarian {
-		sb.WriteString(" &#x1F955 ")
-	}
-	if mi.Beef {
-		sb.WriteString(" &#x1F404 ")
-	}
-	if mi.Pork {
-		sb.WriteString(" &#x1F416 ")
-	}
-	if mi.Chicken {
-		sb.WriteString(" &#x1F414 ")
-	}
-	if mi.Fish {
-		sb.WriteString(" &#x1F41F ")
-	}
-	if mi.Grain {
-		sb.WriteString(" &#x1F33E ")
-	}
-	if mi.Garlic {
-		sb.WriteString(" &#x1F9C4 ")
-	}
-	if mi.Alcohol {
-		sb.WriteString(" &#x1F37A ")
-	}
-	if mi.Milk {
-		sb.WriteString(" &#x1F95B ")
-	}
+
 	return sb.String()
 }
 
@@ -163,7 +157,7 @@ func (c CanteenScraper) Scrape() *TodaysMenu {
 		colly.AllowedDomains("www.stwh-portal.de"),
 	)
 	scraper.OnHTML("h3 > span.category", func(e *colly.HTMLElement) {
-		if !slices.Contains(CATEGORIES_TO_SCRAPE, e.Text) {
+		if !slices.Contains(CategoriesToScrape, e.Text) {
 			return
 		}
 		category := Category{
@@ -174,38 +168,29 @@ func (c CanteenScraper) Scrape() *TodaysMenu {
 			price := s.Find(".food_price").Text()
 
 			mealInfo := MealInfo{}
+			keywords := map[string]func(){
+				"vegan":        func() { mealInfo.Vegan = true },
+				"beef":         func() { mealInfo.Beef = true },
+				"pork":         func() { mealInfo.Pork = true },
+				"Gluten":       func() { mealInfo.Grain = true },
+				"garlic":       func() { mealInfo.Garlic = true },
+				"Geflügel":     func() { mealInfo.Chicken = true },
+				"alcohol":      func() { mealInfo.Alcohol = true },
+				"without meat": func() { mealInfo.Vegetarian = true },
+				"Fisch":        func() { mealInfo.Fish = true },
+				"Milch":        func() { mealInfo.Milk = true },
+			}
 
 			s.Find("span.symbol").Each(func(_ int, s *goquery.Selection) {
-				info, _ := s.Attr("title")
-				if strings.Contains(info, "vegan") {
-					mealInfo.Vegan = true
+				info, exists := s.Attr("title")
+				if !exists {
+					return
 				}
-				if strings.Contains(info, "beef") {
-					mealInfo.Beef = true
-				}
-				if strings.Contains(info, "pork") {
-					mealInfo.Pork = true
-				}
-				if strings.Contains(info, "Gluten") {
-					mealInfo.Grain = true
-				}
-				if strings.Contains(info, "garlic") {
-					mealInfo.Garlic = true
-				}
-				if strings.Contains(info, "Geflügel") {
-					mealInfo.Chicken = true
-				}
-				if strings.Contains(info, "alcohol") {
-					mealInfo.Alcohol = true
-				}
-				if strings.Contains(info, "without meat") {
-					mealInfo.Vegetarian = true
-				}
-				if strings.Contains(info, "Fisch") {
-					mealInfo.Fish = true
-				}
-				if strings.Contains(info, "Milch") {
-					mealInfo.Milk = true
+
+				for keyword, setter := range keywords {
+					if strings.Contains(info, keyword) {
+						setter()
+					}
 				}
 			})
 			category.Meals = append(category.Meals, Meal{
