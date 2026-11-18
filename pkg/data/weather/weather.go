@@ -40,7 +40,7 @@ type Timeseries struct {
 
 type Data struct {
 	Instant    Instant    `json:"instant"`
-	Next1Hours Next1Hours `json:"next_1_hours,omitempty"`
+	Next1Hours Next1Hours `json:"next_1_hours,omitzero"`
 }
 
 type Instant struct {
@@ -146,8 +146,8 @@ func (wr *WeatherResponse) Body() string {
 	precipitationUnit := wr.Properties.Meta.Units.PrecipitationAmount
 
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("Temp: %.2f %s\n", temp, tempUnit))
-	sb.WriteString(fmt.Sprintf("Rain (1h): %.2f %s", precipitationAmount, precipitationUnit))
+	fmt.Fprintf(&sb, "Temp: %.2f %s\n", temp, tempUnit)
+	fmt.Fprintf(&sb, "Rain (1h): %.2f %s", precipitationAmount, precipitationUnit)
 	return sb.String()
 }
 
@@ -158,10 +158,10 @@ func (wr *WeatherResponse) HTML() string {
 	precipitationUnit := wr.Properties.Meta.Units.PrecipitationAmount
 
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("<h1> Weather at %.2f° N, %.2f° O:</h1>", wr.Geometry.Coordinates[1], wr.Geometry.Coordinates[0]))
-	sb.WriteString(fmt.Sprintf("<h2> %s %.1f%s", wr.weatherSymbol(), temp, tempUnit))
+	fmt.Fprintf(&sb, "<h1> Weather at %.2f° N, %.2f° O:</h1>", wr.Geometry.Coordinates[1], wr.Geometry.Coordinates[0])
+	fmt.Fprintf(&sb, "<h2> %s %.1f%s", wr.weatherSymbol(), temp, tempUnit)
 	if precipitationAmount > 0.0 {
-		sb.WriteString(fmt.Sprintf(" &#x2602 %.2f%s</h2>", precipitationAmount, precipitationUnit))
+		fmt.Fprintf(&sb, " &#x2602 %.2f%s</h2>", precipitationAmount, precipitationUnit)
 	} else {
 		sb.WriteString("</h2>")
 	}
